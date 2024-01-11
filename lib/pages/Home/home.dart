@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:tamagotchi/pages/Home/settings_dialog.dart';
+import 'package:tamagotchi/pages/Home/home_settings_dialog.dart';
 import 'dart:async';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -103,9 +103,10 @@ class PlantValueState extends State<PlantValue> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      //TODO
       // Update plant value every second
       setState(() {
-
+        temperatureMarker++;
       });
     });
   }
@@ -132,15 +133,39 @@ class PlantValueState extends State<PlantValue> {
         children: <Widget>[
           Expanded(
               flex: 1,
-              child: createProgressBar("Water")
+              child: createProgressBar(
+                "Water",
+                waterMarker,
+                [
+                  [Colors.yellow[600]!, Colors.yellow, Colors.yellow[300]!, Colors.blue[300]!],
+                  [Colors.blue[300]!, Colors.blue],
+                  [Colors.blue, Colors.blue[900]!, Colors.indigo[900]!]
+                ]
+              )
           ),
           Expanded(
               flex: 1,
-              child: createProgressBar("Temperature")
+              child: createProgressBar(
+                "Temperature",
+                temperatureMarker,
+                [
+                  [Colors.red[600]!, Colors.red[300]!, Colors.green[300]!],
+                  [Colors.green[300]!, Colors.green, Colors.green[300]!],
+                  [Colors.green[300]!, Colors.blue[300]!, Colors.blue[600]!]
+                ]
+              )
           ),
           Expanded(
               flex: 1,
-              child: createProgressBar("Light")
+              child: createProgressBar(
+                "Light",
+                lightMarker,
+                [
+                  [Colors.black, Colors.grey[850]!, Colors.grey, Colors.yellow[200]!],
+                  [Colors.yellow[200]!, Colors.yellow, Colors.yellow[200]!],
+                  [Colors.yellow[200]!, Colors.yellow[100]!, Colors.white]
+                ]
+              )
           )
         ],
       ),
@@ -148,7 +173,8 @@ class PlantValueState extends State<PlantValue> {
   }
   
   //Progress bar 
-  Container createProgressBar(String valueName){
+  Container createProgressBar(String valueName, double value, List<List<Color>> fadeColors){
+    BorderSide myBorderSide = const BorderSide(color: Colors.brown, width: 3);
     return Container(
         margin: const EdgeInsets.all(10.0),
         child: Stack(
@@ -168,57 +194,86 @@ class PlantValueState extends State<PlantValue> {
                 showLabels: false,
                 showTicks: false,
                 minimum: 0,
-                maximum: 6,
+                maximum: 100,
                 //Bar's part
                 ranges: <LinearGaugeRange>[
                   LinearGaugeRange(
                     startValue: 0,
-                    endValue: 2,
-                    startWidth: 10,
-                    endWidth: 10,
-                    child: createFadeContainer([Colors.red[600]!, Colors.red, Colors.red[300]!, Colors.yellow])
+                    endValue: 33,
+                    startWidth: 15,
+                    endWidth: 15,
+                    //Create fade color
+                    child: Container(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: fadeColors[0],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          border: Border(
+                            left: myBorderSide,
+                            bottom: myBorderSide,
+                            top: myBorderSide
+                          )
+                      ),
+                    ),
                   ),
                   LinearGaugeRange(
-                    startValue: 2,
-                    endValue: 4,
-                    startWidth: 10,
-                    endWidth: 10,
-                    child: createFadeContainer([Colors.yellow, Colors.yellow[300]!])
+                    startValue: 33,
+                    endValue: 64,
+                    startWidth: 15,
+                    endWidth: 15,
+                    //Create fade color
+                    child: Container(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: fadeColors[1],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          border: Border(
+                            bottom: myBorderSide,
+                            top: myBorderSide
+                          )
+                      ),
+                    ),
                   ),
                   LinearGaugeRange(
-                    startValue: 4,
-                    endValue: 6,
-                    startWidth: 10,
-                    endWidth: 10,
-                    child: createFadeContainer([Colors.yellow[300]!, Colors.green[300]!, Colors.green, Colors.green[600]!])
+                    startValue: 64,
+                    endValue: 100,
+                    startWidth: 15,
+                    endWidth: 15,
+                    //Create fade color
+                    child: Container(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: fadeColors[2],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          border: Border(
+                            right: myBorderSide,
+                            bottom: myBorderSide,
+                            top: myBorderSide
+                          )
+                      ),
+                    ),
                   ),
                 ],
                 //Bar's marker
                 markerPointers: <LinearShapePointer>[
                   LinearShapePointer(
-                    value: temperatureMarker,
+                    value: value,
                     width: 10,
                     height: 20,
                     position: LinearElementPosition.outside,
-                    shapeType: LinearShapePointerType.rectangle,
+                    shapeType: LinearShapePointerType.invertedTriangle,
                     color: Colors.black,
                   ),
                 ],
               )
             ]
         )
-    );
-  }
-
-  Container createFadeContainer(List<Color> colors){
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors,
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
     );
   }
 }

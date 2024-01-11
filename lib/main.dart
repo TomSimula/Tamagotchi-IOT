@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tamagotchi/pages/Home/home.dart';
-import 'package:tamagotchi/pages/analytics.dart';
+import 'package:tamagotchi/pages/analytics/analytics.dart';
 
 void main() {
   runApp(MaterialApp(
