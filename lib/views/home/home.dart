@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:tamagotchi/pages/Home/home_settings_dialog.dart';
+import 'package:tamagotchi/modele/game.dart';
+import 'package:tamagotchi/modele/settings.dart';
+import 'package:tamagotchi/views/home/home_settings_dialog.dart';
+import 'package:tamagotchi/services/rest.dart';
 import 'dart:async';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../modele/plant.dart';
+import '../../services/database.dart';
+
 class Home extends StatelessWidget {
+
+  static Game currentGame = Game(true, 1, Plant(50, 50, 50, 50), Settings(const RangeValues(25,75),const RangeValues(25,75),const RangeValues(25,75)));
+
   const Home({super.key});
 
   @override
@@ -17,58 +26,59 @@ class Home extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-              flex: 5,
+              flex: 4,
               child: Container(
                 alignment: Alignment.center,
                 child: const Image(
+
                     image: AssetImage('assets/MyPlantV2.png')
                 ),
               )
           ),
           const Expanded(
-              flex: 4,
+              flex: 5,
               child: PlantValue()
           ),
           Expanded(
               flex: 1,
               child: Container(
-                width: 400,
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFBF6EE),
-                  borderRadius: BorderRadius.circular(20.0), // Set the radius here
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                      IconButton(
-                        padding: const EdgeInsets.only(bottom: 1),
-                        onPressed: (){
-                          showSliderDialog(context);
-                        },
-                        icon: const Icon(
-                          Icons.settings,
-                          size: 40,
+                  width: 400,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBF6EE),
+                    borderRadius: BorderRadius.circular(20.0), // Set the radius here
+                  ),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        IconButton(
+                            padding: const EdgeInsets.only(bottom: 1),
+                            onPressed: (){
+                              showSliderDialog(context);
+                            },
+                            icon: const Icon(
+                              Icons.settings,
+                              size: 40,
+                            )
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              RestService().putRunning();
+                            },
+                            child: Home.currentGame.running ? const Text("Pause") : const Text("Play")
+                        ),
+                        IconButton(
+                            padding: const EdgeInsets.only(bottom: 1),
+                            onPressed: (){
+                              Navigator.pushNamed(context, '/analytics');
+                            },
+                            icon: const Icon(
+                              Icons.analytics_rounded,
+                              size: 40,
+                            )
                         )
-                      ),
-                      ElevatedButton(
-                          onPressed: () {
-                            //TODO
-                          },
-                          child: const Text("Comment ca va?")
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.only(bottom: 1),
-                        onPressed: (){
-                          Navigator.pushNamed(context, '/analytics');
-                        },
-                        icon: const Icon(
-                          Icons.analytics_rounded,
-                          size: 40,
-                        )
-                      )
-                    ]
-                )
+                      ]
+                  )
               )
           ),
         ],
@@ -95,23 +105,21 @@ class PlantValue extends StatefulWidget {
 }
 
 class PlantValueState extends State<PlantValue> {
-
-  double waterMarker = 0;
-  double temperatureMarker = 0;
-  double lightMarker = 0;
   Timer? _timer;
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      //TODO
-      // Update plant value every second
+  //Launch a timer that update plant value every second
+  void startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
+      DatabaseService().getScore();
+      Map gameInfo = await RestService().getStateFlower();
+      // Update plant value
       setState(() {
-        temperatureMarker++;
+        Home.currentGame.updateGame(gameInfo);
       });
     });
   }
 
-  void _stopTimer() {
+  void stopTimer() {
     _timer?.cancel();
   }
 
@@ -123,19 +131,23 @@ class PlantValueState extends State<PlantValue> {
         onVisibilityChanged: (VisibilityInfo info) {
           if (info.visibleFraction == 0) {
             // Widget is not visible, stop the timer
-            _stopTimer();
+            stopTimer();
           } else {
             // Widget is visible, start or restart the timer
-            _startTimer();
+            startTimer();
           }
         },
       child: Column(
         children: <Widget>[
           Expanded(
               flex: 1,
+              child: createLifeBar(Home.currentGame.plant.life)
+          ),
+          Expanded(
+              flex: 1,
               child: createProgressBar(
                 "Water",
-                waterMarker,
+                Home.currentGame.plant.water,
                 [
                   [Colors.yellow[600]!, Colors.yellow, Colors.yellow[300]!, Colors.blue[300]!],
                   [Colors.blue[300]!, Colors.blue],
@@ -147,7 +159,7 @@ class PlantValueState extends State<PlantValue> {
               flex: 1,
               child: createProgressBar(
                 "Temperature",
-                temperatureMarker,
+                  Home.currentGame.plant.temperature,
                 [
                   [Colors.red[600]!, Colors.red[300]!, Colors.green[300]!],
                   [Colors.green[300]!, Colors.green, Colors.green[300]!],
@@ -159,7 +171,7 @@ class PlantValueState extends State<PlantValue> {
               flex: 1,
               child: createProgressBar(
                 "Light",
-                lightMarker,
+                  Home.currentGame.plant.light,
                 [
                   [Colors.black, Colors.grey[850]!, Colors.grey, Colors.yellow[200]!],
                   [Colors.yellow[200]!, Colors.yellow, Colors.yellow[200]!],
@@ -169,6 +181,34 @@ class PlantValueState extends State<PlantValue> {
           )
         ],
       ),
+    );
+  }
+
+  Container createLifeBar(double lifeValue){
+    return Container(
+      margin: const EdgeInsets.all(13.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Life: ${lifeValue.toInt()}/100', // Display life percentage
+            style: const TextStyle(fontSize: 20),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.brown, width: 3), // Brown border
+              borderRadius: BorderRadius.circular(5), // Rounded corners
+
+            ),
+            child: LinearProgressIndicator(
+              minHeight: 15,
+              value: lifeValue/100, // Set the progress value
+              backgroundColor: Colors.grey,
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green), // Set the color of the progress bar
+            ),
+          ),
+        ],
+      )
     );
   }
   
@@ -214,7 +254,7 @@ class PlantValueState extends State<PlantValue> {
                             left: myBorderSide,
                             bottom: myBorderSide,
                             top: myBorderSide
-                          )
+                          ),
                       ),
                     ),
                   ),

@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:tamagotchi/services/rest.dart';
+
+import 'home.dart';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});
@@ -8,15 +13,15 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class SettingsDialogState extends State<SettingsDialog> {
-  RangeValues waterRangeValue = const RangeValues(20, 80);
-  RangeValues temperatureRangeValue = const RangeValues(20, 80);
-  RangeValues lightRangeValue = const RangeValues(20, 80);
+  RangeValues waterRangeValue = RangeValues(Home.currentGame.settings.waterRangeValue.start, Home.currentGame.settings.waterRangeValue.end);
+  RangeValues temperatureRangeValue = RangeValues(Home.currentGame.settings.temperatureRangeValue.start, Home.currentGame.settings.temperatureRangeValue.end);
+  RangeValues lightRangeValue = RangeValues(Home.currentGame.settings.lightRangeValue.start, Home.currentGame.settings.lightRangeValue.end);
+  double speed = Home.currentGame.speed;
 
   bool led = false;
 
   @override
   Widget build(BuildContext context) {
-    //TODO recovers Threshold valus
     return AlertDialog(
       title: const Text('Settings', textAlign: TextAlign.center),
       backgroundColor: const Color(0xFF976b48),
@@ -29,9 +34,8 @@ class SettingsDialogState extends State<SettingsDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-
                   onPressed: (){
-                    //TODO
+                    RestService().putLedSecond();
                     setState(() {
                       led = false;
                     });
@@ -45,12 +49,32 @@ class SettingsDialogState extends State<SettingsDialog> {
                     activeColor: const Color(0xFF65B741),
                     onChanged: (bool value) {
                       // This is called when the user toggles the switch.
+                      RestService().putLed();
                       setState(() {
                         led = value;
                       });
                     }
                 )
             ]
+          ),
+          const SizedBox(height: 30),
+          Column(
+            children: [
+              const Text('Game speed', style: TextStyle(fontSize: 20)),
+              Slider(
+                value: speed,
+                onChanged: (value) {
+                  setState(() {
+                    speed = value;
+                  });
+                },
+                min: 0,
+                max: 5,
+                divisions: 5,
+                activeColor: const Color(0xFF65B741),
+                label: speed.toInt().toString(),
+              ),
+            ],
           ),
           const SizedBox(height: 30),
           Column(
@@ -90,8 +114,21 @@ class SettingsDialogState extends State<SettingsDialog> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  //TODO
-                  Navigator.pop(context); // Close the dialog
+                  // Convert the settings object to a Map
+                  Map<String, dynamic> settingsMap = {
+                    'seuilLumiereBasse': lightRangeValue.start,
+                    'seuilLumiereHaute': lightRangeValue.end,
+                    'seuilTemperatureBasse': temperatureRangeValue.start,
+                    'seuilTemperatureHaute': temperatureRangeValue.end,
+                    'seuilEauBasse': waterRangeValue.start,
+                    'seuilEauHaute': waterRangeValue.end,
+                  };
+                  // Encode the Map as a JSON string
+                  String jsonBody = jsonEncode({'vitesse': settingsMap, 'settings': settingsMap});
+                  //Send update to TTGO
+                  RestService().postSettings(jsonBody);
+                  // Close the dialog
+                  Navigator.pop(context);
                 },
                 child: const Text('Apply')
               ),

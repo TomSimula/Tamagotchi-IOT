@@ -34,6 +34,9 @@ dependencies:
   syncfusion_flutter_gauges: ^23.2.7
   visibility_detector: ^0.2.0
   http: ^1.1.0
+  fl_chart: ^0.64.0
+  firebase_core: ^2.24.2
+  cloud_firestore: ^4.14.0
 
 
   # The following adds the Cupertino Icons font to your application.

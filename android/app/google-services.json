@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "912492726879",
+    "project_id": "iot-tamagotchi-e810b",
+    "storage_bucket": "iot-tamagotchi-e810b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:912492726879:android:f25df4c82a8d59f4c669ea",
+        "android_client_info": {
+          "package_name": "com.example.tamagotchi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcsyguPkG5s0soWI1TqMcB9eIQ4rRLnBw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

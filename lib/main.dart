@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:tamagotchi/pages/Home/home.dart';
-import 'package:tamagotchi/pages/analytics/analytics.dart';
+import 'package:tamagotchi/views/home/home.dart';
+import 'package:tamagotchi/views/sensor/sensor.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MaterialApp(
     theme: ThemeData(
       scaffoldBackgroundColor: const Color(0xFFA3EE97),
@@ -22,7 +29,7 @@ void main() {
     initialRoute: '/',
     routes: {
       '/': (context) => const Home(),
-      '/analytics': (context) => const Analytics()
+      '/analytics': (context) => const Sensor()
     },
   ));
 }
