@@ -36,9 +36,6 @@ class SettingsDialogState extends State<SettingsDialog> {
                 ElevatedButton(
                   onPressed: (){
                     RestService().putLedSecond();
-                    setState(() {
-                      led = false;
-                    });
                   },
                   child:const Text('LED')
                 ),
@@ -115,7 +112,7 @@ class SettingsDialogState extends State<SettingsDialog> {
               ElevatedButton(
                 onPressed: () {
                   // Convert the settings object to a Map
-                  Map<String, dynamic> settingsMap = {
+                  Map<String, dynamic> thresholdMap = {
                     'seuilLumiereBasse': lightRangeValue.start,
                     'seuilLumiereHaute': lightRangeValue.end,
                     'seuilTemperatureBasse': temperatureRangeValue.start,
@@ -123,8 +120,11 @@ class SettingsDialogState extends State<SettingsDialog> {
                     'seuilEauBasse': waterRangeValue.start,
                     'seuilEauHaute': waterRangeValue.end,
                   };
+                  Map<String, dynamic> speedMap = {
+                    'vitesse': speed
+                  };
                   // Encode the Map as a JSON string
-                  String jsonBody = jsonEncode({'vitesse': settingsMap, 'settings': settingsMap});
+                  String jsonBody = jsonEncode({'game': speedMap, 'settings': thresholdMap});
                   //Send update to TTGO
                   RestService().postSettings(jsonBody);
                   // Close the dialog

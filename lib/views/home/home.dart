@@ -10,106 +10,113 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../modele/plant.dart';
 import '../../services/database.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
 
-  static Game currentGame = Game(true, 1, Plant(50, 50, 50, 50), Settings(const RangeValues(25,75),const RangeValues(25,75),const RangeValues(25,75)));
+  static Game currentGame = Game("My Plant", false, 1, Plant(100, 50, 50, 50), Settings(
+      const RangeValues(25, 75), const RangeValues(25, 75),
+      const RangeValues(25, 75)));
 
   const Home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('My Plant'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-              flex: 4,
-              child: Container(
-                alignment: Alignment.center,
-                child: const Image(
-
-                    image: AssetImage('assets/MyPlantV2.png')
-                ),
-              )
-          ),
-          const Expanded(
-              flex: 5,
-              child: PlantValue()
-          ),
-          Expanded(
-              flex: 1,
-              child: Container(
-                  width: 400,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFBF6EE),
-                    borderRadius: BorderRadius.circular(20.0), // Set the radius here
-                  ),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        IconButton(
-                            padding: const EdgeInsets.only(bottom: 1),
-                            onPressed: (){
-                              showSliderDialog(context);
-                            },
-                            icon: const Icon(
-                              Icons.settings,
-                              size: 40,
-                            )
-                        ),
-                        ElevatedButton(
-                            onPressed: () {
-                              RestService().putRunning();
-                            },
-                            child: Home.currentGame.running ? const Text("Pause") : const Text("Play")
-                        ),
-                        IconButton(
-                            padding: const EdgeInsets.only(bottom: 1),
-                            onPressed: (){
-                              Navigator.pushNamed(context, '/analytics');
-                            },
-                            icon: const Icon(
-                              Icons.analytics_rounded,
-                              size: 40,
-                            )
-                        )
-                      ]
-                  )
-              )
-          ),
-        ],
-      ),
-    );
-  }
-
-  void showSliderDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return const SettingsDialog();
-      },
-    );
-  }
-
+  State<Home> createState() => HomeState();
 }
 
-class PlantValue extends StatefulWidget {
-  const PlantValue({super.key});
+class HomeState extends State<Home> {
 
-  @override
-  State<PlantValue> createState() => PlantValueState();
-}
-
-class PlantValueState extends State<PlantValue> {
   Timer? _timer;
 
-  //Launch a timer that update plant value every second
+  @override
+  Widget build(BuildContext context) {
+    return VisibilityDetector(
+      key: const Key('plant_value_detector'),
+      onVisibilityChanged: (VisibilityInfo info) {
+        if (info.visibleFraction == 0) {
+          // Widget is not visible, stop the timer
+          stopTimer();
+        } else {
+          // Widget is visible, start or restart the timer
+          startTimer();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(Home.currentGame.name),
+          leading: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              setState(() {
+                showChangeTitleDialog();
+              });
+            },
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+                flex: 4,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: const Image(
+                      image: AssetImage('assets/MyPlantV2.png')
+                  ),
+                )
+            ),
+            Expanded(
+                flex: 5,
+                child: getPlantValue()
+            ),
+            Expanded(
+                flex: 1,
+                child: Container(
+                    width: 400,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF6EE),
+                      borderRadius: BorderRadius.circular(20.0), // Set the radius here
+                    ),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          IconButton(
+                              padding: const EdgeInsets.only(bottom: 1),
+                              onPressed: (){
+                                showSettingsDialog();
+                              },
+                              icon: const Icon(
+                                Icons.settings,
+                                size: 40,
+                              )
+                          ),
+                          ElevatedButton(
+                              onPressed: () {
+                                RestService().putRunning();
+                              },
+                              child: Home.currentGame.running ? const Text("Pause") : const Text("Play")
+                          ),
+                          IconButton(
+                              padding: const EdgeInsets.only(bottom: 1),
+                              onPressed: (){
+                                Navigator.pushNamed(context, '/analytics');
+                              },
+                              icon: const Icon(
+                                Icons.analytics_rounded,
+                                size: 40,
+                              )
+                          )
+                        ]
+                    )
+                )
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
+    _timer = Timer.periodic(const Duration(milliseconds: 250), (Timer timer) async {
       DatabaseService().getScore();
       Map gameInfo = await RestService().getStateFlower();
       // Update plant value
@@ -123,29 +130,56 @@ class PlantValueState extends State<PlantValue> {
     _timer?.cancel();
   }
 
+  showChangeTitleDialog() {
+    TextEditingController controller = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return VisibilityDetector(
-        key: const Key('plant_value_detector'),
-        onVisibilityChanged: (VisibilityInfo info) {
-          if (info.visibleFraction == 0) {
-            // Widget is not visible, stop the timer
-            stopTimer();
-          } else {
-            // Widget is visible, start or restart the timer
-            startTimer();
-          }
-        },
-      child: Column(
-        children: <Widget>[
-          Expanded(
-              flex: 1,
-              child: createLifeBar(Home.currentGame.plant.life)
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Change your plant name"),
+          backgroundColor: const Color(0xFF976b48),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: "New name"),
           ),
-          Expanded(
-              flex: 1,
-              child: createProgressBar(
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      Home.currentGame.name = controller.text;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Apply"),
+                ),
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget getPlantValue(){
+    return Column(
+      children: <Widget>[
+        Expanded(
+            flex: 1,
+            child: createLifeBar(Home.currentGame.plant.life)
+        ),
+        Expanded(
+            flex: 1,
+            child: createProgressBar(
                 "Water",
                 Home.currentGame.plant.water,
                 [
@@ -153,66 +187,65 @@ class PlantValueState extends State<PlantValue> {
                   [Colors.blue[300]!, Colors.blue],
                   [Colors.blue, Colors.blue[900]!, Colors.indigo[900]!]
                 ]
-              )
-          ),
-          Expanded(
-              flex: 1,
-              child: createProgressBar(
+            )
+        ),
+        Expanded(
+            flex: 1,
+            child: createProgressBar(
                 "Temperature",
-                  Home.currentGame.plant.temperature,
+                Home.currentGame.plant.temperature,
                 [
                   [Colors.red[600]!, Colors.red[300]!, Colors.green[300]!],
                   [Colors.green[300]!, Colors.green, Colors.green[300]!],
                   [Colors.green[300]!, Colors.blue[300]!, Colors.blue[600]!]
                 ]
-              )
-          ),
-          Expanded(
-              flex: 1,
-              child: createProgressBar(
+            )
+        ),
+        Expanded(
+            flex: 1,
+            child: createProgressBar(
                 "Light",
-                  Home.currentGame.plant.light,
+                Home.currentGame.plant.light,
                 [
                   [Colors.black, Colors.grey[850]!, Colors.grey, Colors.yellow[200]!],
                   [Colors.yellow[200]!, Colors.yellow, Colors.yellow[200]!],
                   [Colors.yellow[200]!, Colors.yellow[100]!, Colors.white]
                 ]
-              )
-          )
-        ],
-      ),
+            )
+        )
+      ],
     );
   }
 
   Container createLifeBar(double lifeValue){
     return Container(
-      margin: const EdgeInsets.all(13.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Life: ${lifeValue.toInt()}/100', // Display life percentage
-            style: const TextStyle(fontSize: 20),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.brown, width: 3), // Brown border
-              borderRadius: BorderRadius.circular(5), // Rounded corners
+        margin: const EdgeInsets.all(13.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Life: ${lifeValue.toInt()}/100', // Display life percentage
+              style: const TextStyle(fontSize: 20),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.brown, width: 3), // Brown border
+                borderRadius: BorderRadius.circular(5), // Rounded corners
 
+              ),
+              child: LinearProgressIndicator(
+                minHeight: 15,
+                value: lifeValue/100, // Set the progress value
+                backgroundColor: Colors.grey,
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.green), // Set the color of the progress bar
+              ),
             ),
-            child: LinearProgressIndicator(
-              minHeight: 15,
-              value: lifeValue/100, // Set the progress value
-              backgroundColor: Colors.grey,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green), // Set the color of the progress bar
-            ),
-          ),
-        ],
-      )
+          ],
+        )
     );
   }
-  
-  //Progress bar 
+
+  //Progress bar
   Container createProgressBar(String valueName, double value, List<List<Color>> fadeColors){
     BorderSide myBorderSide = const BorderSide(color: Colors.brown, width: 3);
     return Container(
@@ -245,16 +278,16 @@ class PlantValueState extends State<PlantValue> {
                     //Create fade color
                     child: Container(
                       decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: fadeColors[0],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          border: Border(
+                        gradient: LinearGradient(
+                          colors: fadeColors[0],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        border: Border(
                             left: myBorderSide,
                             bottom: myBorderSide,
                             top: myBorderSide
-                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -272,8 +305,8 @@ class PlantValueState extends State<PlantValue> {
                             end: Alignment.centerRight,
                           ),
                           border: Border(
-                            bottom: myBorderSide,
-                            top: myBorderSide
+                              bottom: myBorderSide,
+                              top: myBorderSide
                           )
                       ),
                     ),
@@ -292,9 +325,9 @@ class PlantValueState extends State<PlantValue> {
                             end: Alignment.centerRight,
                           ),
                           border: Border(
-                            right: myBorderSide,
-                            bottom: myBorderSide,
-                            top: myBorderSide
+                              right: myBorderSide,
+                              bottom: myBorderSide,
+                              top: myBorderSide
                           )
                       ),
                     ),
@@ -316,4 +349,14 @@ class PlantValueState extends State<PlantValue> {
         )
     );
   }
+
+  void showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const SettingsDialog();
+      },
+    );
+  }
+
 }
