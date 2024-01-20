@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tamagotchi/services/rest.dart';
 import 'package:tamagotchi/views/home/home.dart';
 import 'package:tamagotchi/views/sensor/sensor.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +11,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  RestService().postRestart();
   runApp(MaterialApp(
     theme: ThemeData(
       scaffoldBackgroundColor: const Color(0xFFA3EE97),

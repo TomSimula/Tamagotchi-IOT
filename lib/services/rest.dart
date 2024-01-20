@@ -35,9 +35,14 @@ class RestService{
     put(url);
   }
 
-  putRunning() async {
+  putRunning() {
     Uri url = Uri.parse('http://$ip:80/pause');
     put(url);
+  }
+
+  postRestart() {
+    Uri url = Uri.parse('http://$ip:80/restart');
+    post(url);
   }
 
 }

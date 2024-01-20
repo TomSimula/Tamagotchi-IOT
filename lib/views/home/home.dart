@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:tamagotchi/modele/game.dart';
 import 'package:tamagotchi/modele/settings.dart';
+import 'package:tamagotchi/views/home/home_rename_dialog.dart';
 import 'package:tamagotchi/views/home/home_settings_dialog.dart';
 import 'package:tamagotchi/services/rest.dart';
 import 'dart:async';
 import 'package:visibility_detector/visibility_detector.dart';
-
 import '../../modele/plant.dart';
-import '../../services/database.dart';
 
 class Home extends StatefulWidget {
 
@@ -34,6 +33,10 @@ class HomeState extends State<Home> {
         if (info.visibleFraction == 0) {
           // Widget is not visible, stop the timer
           stopTimer();
+          if (Home.currentGame.running) {
+            RestService().putRunning();
+            Home.currentGame.running = false;
+          }
         } else {
           // Widget is visible, start or restart the timer
           startTimer();
@@ -46,9 +49,7 @@ class HomeState extends State<Home> {
           leading: IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              setState(() {
-                showChangeTitleDialog();
-              });
+              showRenameDialog();
             },
           ),
         ),
@@ -117,7 +118,6 @@ class HomeState extends State<Home> {
 
   void startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 250), (Timer timer) async {
-      DatabaseService().getScore();
       Map gameInfo = await RestService().getStateFlower();
       // Update plant value
       setState(() {
@@ -130,41 +130,16 @@ class HomeState extends State<Home> {
     _timer?.cancel();
   }
 
-  showChangeTitleDialog() {
-    TextEditingController controller = TextEditingController();
-
+  showRenameDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Change your plant name"),
-          backgroundColor: const Color(0xFF976b48),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "New name"),
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      Home.currentGame.name = controller.text;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Apply"),
-                ),
-              ],
-            )
-          ],
+        return RenameDialog(
+          onNameChanged: (newName) {
+            setState(() {
+              Home.currentGame.name = newName;
+            });
+          },
         );
       },
     );
