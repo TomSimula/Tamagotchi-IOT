@@ -6,4 +6,11 @@ class DatabaseService {
   Stream<QuerySnapshot> getScore() {
     return highscore.snapshots();
   }
+
+  putScore(String name, int score) {
+    highscore.add({
+      'name': name,
+      'score': score,
+    });
+  }
 }
