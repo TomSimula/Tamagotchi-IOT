@@ -81,21 +81,21 @@ class SettingsDialogState extends State<SettingsDialog> {
               const Text('Water'),
               createRangeSlider(waterRangeValue, (values) {
                 setState(() {
-                  waterRangeValue = values; // Update the state variable
+                  waterRangeValue = values;
                 });
               }),
               const SizedBox(height: 20),
               const Text('Temperature'),
               createRangeSlider(temperatureRangeValue, (values) {
                 setState(() {
-                  temperatureRangeValue = values; // Update the state variable
+                  temperatureRangeValue = values;
                 });
               }),
               const SizedBox(height: 20),
               const Text('Light'),
               createRangeSlider(lightRangeValue, (values) {
                 setState(() {
-                  lightRangeValue = values; // Update the state variable
+                  lightRangeValue = values;
                 });
               }),
             ],
@@ -120,11 +120,9 @@ class SettingsDialogState extends State<SettingsDialog> {
                     'seuilEauBasse': waterRangeValue.start,
                     'seuilEauHaute': waterRangeValue.end,
                   };
-                  Map<String, dynamic> speedMap = {
-                    'vitesse': speed
-                  };
-                  // Encode the Map as a JSON string
+                  Map<String, dynamic> speedMap = {'vitesse': speed};
                   String jsonBody = jsonEncode({'game': speedMap, 'settings': thresholdMap});
+
                   //Send update to TTGO
                   RestService().postSettings(jsonBody);
                   // Close the dialog

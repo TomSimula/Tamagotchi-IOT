@@ -22,7 +22,7 @@ class RestService{
   getSensor() async {
     Uri url = Uri.parse('http://$ip:80/capteurs');
     Response response = await get(url);
-    Map data = jsonDecode(response.body);
+    return jsonDecode(response.body);
   }
 
   putLedSecond() {

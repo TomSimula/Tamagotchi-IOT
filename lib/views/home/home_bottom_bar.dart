@@ -59,6 +59,7 @@ class BottomBarState extends State<BottomBar> {
   void showSettingsDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return const SettingsDialog();
       },

@@ -2,16 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:tamagotchi/views/home/home_bottom_bar.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../services/rest.dart';
 import 'home.dart';
 
 class PlantValue extends StatefulWidget {
-  final Function(Map) updateGame;
 
-  const PlantValue({Key? key, required this.updateGame}) : super(key: key);
+  const PlantValue({super.key});
 
   @override
   State<PlantValue> createState() => PlantValueState();
@@ -26,7 +24,12 @@ class PlantValueState extends State<PlantValue> {
     _timer = Timer.periodic(const Duration(milliseconds: 250), (Timer timer) async {
       Map gameInfo = await RestService().getStateFlower();
       // Update plant value
-      widget.updateGame(gameInfo);
+      setState(() {
+        Home.currentGame.updateGame(gameInfo);
+        if(Home.currentGame.plant.life <=0){
+          Navigator.pushNamed(context, '/defeat');
+        }
+      });
     });
   }
 
@@ -75,9 +78,9 @@ class PlantValueState extends State<PlantValue> {
                   "Temperature",
                   Home.currentGame.plant.temperature,
                   [
-                    [Colors.red[600]!, Colors.red[300]!, Colors.green[300]!],
-                    [Colors.green[300]!, Colors.green, Colors.green[300]!],
-                    [Colors.green[300]!, Colors.blue[300]!, Colors.blue[600]!]
+                    [Colors.blue[600]!, Colors.blue[300]!, Colors.green[300]!],
+                    [Colors.green[300]!, Colors.green,Colors.green[300]!],
+                    [Colors.green[300]!, Colors.red[300]!, Colors.red[600]!]
                   ]
               )
           ),
@@ -230,5 +233,4 @@ class PlantValueState extends State<PlantValue> {
         )
     );
   }
-
 }

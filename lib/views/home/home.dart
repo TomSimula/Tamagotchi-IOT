@@ -45,15 +45,9 @@ class HomeState extends State<Home> {
                 ),
               )
           ),
-          Expanded(
+          const Expanded(
               flex: 5,
-              child: PlantValue(
-                updateGame: (gameInfo) {
-                  setState(() {
-                    Home.currentGame.updateGame(gameInfo);
-                  });
-                },
-              )
+              child: PlantValue()
           ),
           const Expanded(
               flex: 1,
@@ -64,9 +58,11 @@ class HomeState extends State<Home> {
     );
   }
 
+  //
   showRenameDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return RenameDialog(
           onNameChanged: (newName) {
