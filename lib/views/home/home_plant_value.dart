@@ -101,6 +101,7 @@ class PlantValueState extends State<PlantValue> {
     );
   }
 
+  //Return a progress bar that is lifeValue% fill
   Container createLifeBar(double lifeValue){
     return Container(
         margin: const EdgeInsets.all(13.0),
@@ -115,7 +116,6 @@ class PlantValueState extends State<PlantValue> {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.brown, width: 3), // Brown border
                 borderRadius: BorderRadius.circular(5), // Rounded corners
-
               ),
               child: LinearProgressIndicator(
                 minHeight: 15,
@@ -129,7 +129,7 @@ class PlantValueState extends State<PlantValue> {
     );
   }
 
-  //Progress bar
+  //Return a fade gauge with a cursor put at the value
   Container createProgressBar(String valueName, double value, List<List<Color>> fadeColors){
     BorderSide myBorderSide = const BorderSide(color: Colors.brown, width: 3);
     return Container(
